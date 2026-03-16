@@ -115,3 +115,37 @@ func TestCalculateDivide(t *testing.T) {
 		})
 	}
 }
+
+// BenchmarkCalculate measures the performance of the Engine.Calculate method
+// across all supported arithmetic operations.
+func BenchmarkCalculate(b *testing.B) {
+	engine := calc.NewEngine()
+
+	b.Run("Add", func(b *testing.B) {
+		op := calc.Operation{Left: 2, Right: 3, Operator: calc.OpAdd}
+		for i := 0; i < b.N; i++ {
+			engine.Calculate(op)
+		}
+	})
+
+	b.Run("Subtract", func(b *testing.B) {
+		op := calc.Operation{Left: 5, Right: 3, Operator: calc.OpSubtract}
+		for i := 0; i < b.N; i++ {
+			engine.Calculate(op)
+		}
+	})
+
+	b.Run("Multiply", func(b *testing.B) {
+		op := calc.Operation{Left: 3, Right: 4, Operator: calc.OpMultiply}
+		for i := 0; i < b.N; i++ {
+			engine.Calculate(op)
+		}
+	})
+
+	b.Run("Divide", func(b *testing.B) {
+		op := calc.Operation{Left: 10, Right: 4, Operator: calc.OpDivide}
+		for i := 0; i < b.N; i++ {
+			engine.Calculate(op)
+		}
+	})
+}

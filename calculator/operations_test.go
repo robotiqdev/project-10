@@ -103,3 +103,31 @@ func TestDivideBasicCases(t *testing.T) {
 		})
 	}
 }
+
+// BenchmarkAdd measures the performance of the Add function.
+func BenchmarkAdd(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Add(2, 3)
+	}
+}
+
+// BenchmarkSubtract measures the performance of the Subtract function.
+func BenchmarkSubtract(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Subtract(5, 3)
+	}
+}
+
+// BenchmarkMultiply measures the performance of the Multiply function.
+func BenchmarkMultiply(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Multiply(3, 4)
+	}
+}
+
+// BenchmarkDivide measures the performance of the Divide function.
+func BenchmarkDivide(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Divide(10, 4)
+	}
+}
