@@ -5,12 +5,12 @@ package validation
 type CalcError string
 
 // Error satisfies the error interface.
-func (e CalcError) Error() string { return "" }
+func (e CalcError) Error() string { return string(e) }
 
-// Sentinel errors — zero values until implementation provides real messages.
+// Sentinel errors.
 var (
-	ErrInvalidOperator CalcError
-	ErrInvalidNumber   CalcError
-	ErrDivisionByZero  CalcError
-	ErrInvalidArgCount CalcError
+	ErrInvalidOperator CalcError = "invalid operator"
+	ErrInvalidNumber   CalcError = "invalid number"
+	ErrDivisionByZero  CalcError = "division by zero"
+	ErrInvalidArgCount CalcError = "invalid argument count"
 )
