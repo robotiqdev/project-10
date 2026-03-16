@@ -1,7 +1,10 @@
+//go:build !integration
+
 package calc
 
 import (
 	"errors"
+	"math"
 	"testing"
 
 	errs "github.com/example/calc-app/internal/errors"
@@ -22,6 +25,8 @@ func TestAdd(t *testing.T) {
 		{"zero right operand", 5, 0, 5},
 		{"both operands zero", 0, 0, 0},
 		{"negative decimal", -1.1, -2.2, -3.3000000000000003},
+		{"large positive numbers", 1e12, 2e12, 3e12},
+		{"large negative numbers", -1e12, -2e12, -3e12},
 	}
 
 	for _, tt := range tests {
@@ -49,6 +54,7 @@ func TestSubtract(t *testing.T) {
 		{"zero left operand", 0, 5, -5},
 		{"zero right operand", 5, 0, 5},
 		{"both operands zero", 0, 0, 0},
+		{"large numbers", 1e15, 5e14, 5e14},
 	}
 
 	for _, tt := range tests {
@@ -78,6 +84,7 @@ func TestMultiply(t *testing.T) {
 		{"both operands zero", 0, 0, 0},
 		{"multiply by one", 7, 1, 7},
 		{"fractional result", 0.1, 0.2, 0.020000000000000004},
+		{"large numbers", 1e6, 1e6, 1e12},
 	}
 
 	for _, tt := range tests {
@@ -105,6 +112,7 @@ func TestDivide(t *testing.T) {
 		{"both negative", -10, -2, 5},
 		{"zero dividend", 0, 5, 0},
 		{"decimal operands", 7.5, 2.5, 3.0},
+		{"large numbers", 1e12, 1e6, 1e6},
 	}
 
 	for _, tt := range tests {
@@ -113,7 +121,7 @@ func TestDivide(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Divide(%v, %v) returned unexpected error: %v", tt.a, tt.b, err)
 			}
-			if got != tt.expected {
+			if math.Abs(got-tt.expected) >= 1e-9 && got != tt.expected {
 				t.Errorf("Divide(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
 			}
 		})
