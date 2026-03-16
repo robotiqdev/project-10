@@ -9,6 +9,8 @@ import (
 var (
 	ErrDivisionByZero  = errors.New("division by zero")
 	ErrUnknownOperator = errors.New("unknown operator")
+	ErrInvalidNumber   = errors.New("invalid number")
+	ErrInvalidArgCount = errors.New("invalid argument count")
 )
 
 // CalcError wraps a sentinel error with the offending input value.

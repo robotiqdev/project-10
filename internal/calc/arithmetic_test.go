@@ -169,3 +169,39 @@ func TestDivideByZeroReturnsZeroResult(t *testing.T) {
 		t.Errorf("Divide(5, 0) result = %v; want 0 when error is returned", result)
 	}
 }
+
+// TestDivideByZeroMultipleDividends verifies that Divide(x, 0) always returns
+// ErrDivisionByZero regardless of the dividend x value.
+func TestDivideByZeroMultipleDividends(t *testing.T) {
+	tests := []struct {
+		name     string
+		dividend float64
+	}{
+		{"positive integer", 1},
+		{"positive large integer", 1000000},
+		{"negative integer", -7},
+		{"negative large integer", -1000000},
+		{"zero dividend", 0},
+		{"positive decimal", 3.14},
+		{"negative decimal", -2.71},
+		{"very small positive", 0.0001},
+		{"very large positive", 1e15},
+		{"very large negative", -1e15},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := Divide(tt.dividend, 0)
+
+			if err == nil {
+				t.Fatalf("Divide(%v, 0) = %v, nil; want an error", tt.dividend, result)
+			}
+			if !errors.Is(err, errs.ErrDivisionByZero) {
+				t.Errorf("Divide(%v, 0) error = %v; want errors.Is(err, ErrDivisionByZero) to be true", tt.dividend, err)
+			}
+			if result != 0 {
+				t.Errorf("Divide(%v, 0) result = %v; want 0 when error is returned", tt.dividend, result)
+			}
+		})
+	}
+}
