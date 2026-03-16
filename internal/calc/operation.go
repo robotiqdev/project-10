@@ -4,10 +4,10 @@ package calc
 type Operator string
 
 const (
-	OpAdd      Operator = ""
-	OpSubtract Operator = ""
-	OpMultiply Operator = ""
-	OpDivide   Operator = ""
+	OpAdd      Operator = "+"
+	OpSubtract Operator = "-"
+	OpMultiply Operator = "*"
+	OpDivide   Operator = "/"
 )
 
 // Operation stub — fields present for compilation but not fully wired.
