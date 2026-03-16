@@ -1,6 +1,10 @@
 package calc
 
-import "fmt"
+import (
+	"fmt"
+
+	errs "calculator/internal/errors"
+)
 
 // Operator represents a supported mathematical operator.
 type Operator string
@@ -22,5 +26,22 @@ func NewEngine() *Engine {
 
 // Calculate performs the operation and returns a formatted string result.
 func (e *Engine) Calculate(op Operation) (string, error) {
-	return "", fmt.Errorf("not implemented")
+	var result float64
+	switch op.Operator {
+	case "+":
+		result = op.Left + op.Right
+	case "-":
+		result = op.Left - op.Right
+	case "*":
+		result = op.Left * op.Right
+	case "/":
+		var err error
+		result, err = Divide(op.Left, op.Right)
+		if err != nil {
+			return "", err
+		}
+	default:
+		return "", &errs.CalcError{Sentinel: errs.ErrUnknownOperator, Input: string(op.Operator)}
+	}
+	return fmt.Sprintf("%g", result), nil
 }
