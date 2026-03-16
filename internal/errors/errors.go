@@ -1,6 +1,9 @@
 package errors
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Sentinel errors — placeholder values; implementation will provide real messages.
 var (
@@ -16,8 +19,8 @@ type CalcError struct {
 	Input    string
 }
 
-// Error returns an empty string — not yet implemented.
-func (e *CalcError) Error() string { return "" }
+// Error returns a formatted message with the sentinel message and input value.
+func (e *CalcError) Error() string { return fmt.Sprintf("%v: %q", e.Sentinel, e.Input) }
 
-// Unwrap returns nil — not yet implemented.
-func (e *CalcError) Unwrap() error { return nil }
+// Unwrap returns the sentinel error so errors.Is() traverses the chain.
+func (e *CalcError) Unwrap() error { return e.Sentinel }
