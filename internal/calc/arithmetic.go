@@ -4,21 +4,23 @@ import errs "github.com/example/calc-app/internal/errors"
 
 // Add returns the sum of a and b.
 func Add(a, b float64) float64 {
-	return 0
+	return a + b
 }
 
 // Subtract returns the difference of a and b.
 func Subtract(a, b float64) float64 {
-	return 0
+	return a - b
 }
 
 // Multiply returns the product of a and b.
 func Multiply(a, b float64) float64 {
-	return 0
+	return a * b
 }
 
 // Divide returns a divided by b. Returns an error if b is zero.
 func Divide(a, b float64) (float64, error) {
-	_ = errs.ErrDivisionByZero // ensure import is used
-	return 0, nil
+	if b == 0 {
+		return 0, &errs.CalcError{Sentinel: errs.ErrDivisionByZero, Input: "0"}
+	}
+	return a / b, nil
 }
