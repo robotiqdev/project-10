@@ -3,11 +3,19 @@ package validation
 // ValidateOperator checks whether op is one of the four supported operators: +, -, *, /.
 // Returns nil if valid, or ErrInvalidOperator otherwise.
 func ValidateOperator(op string) error {
-	panic("not implemented")
+	switch op {
+	case "+", "-", "*", "/":
+		return nil
+	default:
+		return ErrInvalidOperator
+	}
 }
 
 // ExtractOperator validates op and returns it on success.
 // Returns ("", ErrInvalidOperator) for unsupported operators.
 func ExtractOperator(op string) (string, error) {
-	panic("not implemented")
+	if err := ValidateOperator(op); err != nil {
+		return "", err
+	}
+	return op, nil
 }
