@@ -3,9 +3,11 @@
 package parser_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/example/calc-app/internal/calc"
+	errs "github.com/example/calc-app/internal/errors"
 	"github.com/example/calc-app/internal/parser"
 )
 
@@ -207,6 +209,217 @@ func BenchmarkParse(b *testing.B) {
 	args := []string{"3", "+", "4"}
 	for i := 0; i < b.N; i++ {
 		parser.Parse(args)
+	}
+}
+
+// TestParseInvalidOperatorSymbolsUseErrUnknownOperator verifies that Parse returns
+// errors.Is(err, errs.ErrUnknownOperator) for invalid operator symbols.
+func TestParseInvalidOperatorSymbolsUseErrUnknownOperator(t *testing.T) {
+	invalidOps := []string{"%", "^", "!", "@", "#", "~", "mod", "div", "**", "++"}
+
+	for _, op := range invalidOps {
+		t.Run("invalid op "+op, func(t *testing.T) {
+			_, err := parser.Parse([]string{"3", op, "4"})
+			if err == nil {
+				t.Fatalf("Parse(3 %s 4) = nil; want non-nil error", op)
+			}
+			if !errors.Is(err, errs.ErrUnknownOperator) {
+				t.Errorf("Parse(3 %s 4) error = %v; want errors.Is(err, ErrUnknownOperator) to be true", op, err)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(3 %s 4) error message is empty; want non-empty", op)
+			}
+		})
+	}
+}
+
+// TestParseMalformedLeftOperandLettersUsesErrInvalidNumber verifies that a left
+// operand containing letters returns errors.Is(err, errs.ErrInvalidNumber).
+func TestParseMalformedLeftOperandLettersUsesErrInvalidNumber(t *testing.T) {
+	malformed := []string{"abc", "1a", "a1", "one", "1b2", "not_a_num"}
+
+	for _, s := range malformed {
+		t.Run("left operand "+s, func(t *testing.T) {
+			_, err := parser.Parse([]string{s, "+", "4"})
+			if err == nil {
+				t.Fatalf("Parse(%s + 4) = nil; want non-nil error", s)
+			}
+			if !errors.Is(err, errs.ErrInvalidNumber) {
+				t.Errorf("Parse(%s + 4) error = %v; want errors.Is(err, ErrInvalidNumber) to be true", s, err)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(%s + 4) error message is empty; want non-empty", s)
+			}
+		})
+	}
+}
+
+// TestParseMalformedLeftOperandMultipleDotsUsesErrInvalidNumber verifies that a left
+// operand with multiple decimal points returns errors.Is(err, errs.ErrInvalidNumber).
+func TestParseMalformedLeftOperandMultipleDotsUsesErrInvalidNumber(t *testing.T) {
+	malformed := []string{"1.2.3", "1..2", "..1", "1..", "0.0.0"}
+
+	for _, s := range malformed {
+		t.Run("left operand "+s, func(t *testing.T) {
+			_, err := parser.Parse([]string{s, "+", "4"})
+			if err == nil {
+				t.Fatalf("Parse(%s + 4) = nil; want non-nil error", s)
+			}
+			if !errors.Is(err, errs.ErrInvalidNumber) {
+				t.Errorf("Parse(%s + 4) error = %v; want errors.Is(err, ErrInvalidNumber) to be true", s, err)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(%s + 4) error message is empty; want non-empty", s)
+			}
+		})
+	}
+}
+
+// TestParseMalformedRightOperandLettersUsesErrInvalidNumber verifies that a right
+// operand containing letters returns errors.Is(err, errs.ErrInvalidNumber).
+func TestParseMalformedRightOperandLettersUsesErrInvalidNumber(t *testing.T) {
+	malformed := []string{"xyz", "1z", "z1", "two", "5x6", "bad_num"}
+
+	for _, s := range malformed {
+		t.Run("right operand "+s, func(t *testing.T) {
+			_, err := parser.Parse([]string{"3", "+", s})
+			if err == nil {
+				t.Fatalf("Parse(3 + %s) = nil; want non-nil error", s)
+			}
+			if !errors.Is(err, errs.ErrInvalidNumber) {
+				t.Errorf("Parse(3 + %s) error = %v; want errors.Is(err, ErrInvalidNumber) to be true", s, err)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(3 + %s) error message is empty; want non-empty", s)
+			}
+		})
+	}
+}
+
+// TestParseMalformedRightOperandMultipleDotsUsesErrInvalidNumber verifies that a right
+// operand with multiple decimal points returns errors.Is(err, errs.ErrInvalidNumber).
+func TestParseMalformedRightOperandMultipleDotsUsesErrInvalidNumber(t *testing.T) {
+	malformed := []string{"1.2.3", "2..5", "..3", "3..", "9.9.9"}
+
+	for _, s := range malformed {
+		t.Run("right operand "+s, func(t *testing.T) {
+			_, err := parser.Parse([]string{"3", "+", s})
+			if err == nil {
+				t.Fatalf("Parse(3 + %s) = nil; want non-nil error", s)
+			}
+			if !errors.Is(err, errs.ErrInvalidNumber) {
+				t.Errorf("Parse(3 + %s) error = %v; want errors.Is(err, ErrInvalidNumber) to be true", s, err)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(3 + %s) error message is empty; want non-empty", s)
+			}
+		})
+	}
+}
+
+// TestParseWrongArgCountUsesErrInvalidArgCount verifies that Parse returns
+// errors.Is(err, errs.ErrInvalidArgCount) for arg counts 0, 1, 2, 4, and 5.
+func TestParseWrongArgCountUsesErrInvalidArgCount(t *testing.T) {
+	cases := []struct {
+		name string
+		args []string
+	}{
+		{"zero args", []string{}},
+		{"one arg", []string{"5"}},
+		{"two args", []string{"5", "+"}},
+		{"four args", []string{"5", "+", "3", "extra"}},
+		{"five args", []string{"5", "+", "3", "extra1", "extra2"}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parser.Parse(tc.args)
+			if err == nil {
+				t.Fatalf("Parse(%v) = nil; want non-nil error", tc.args)
+			}
+			if !errors.Is(err, errs.ErrInvalidArgCount) {
+				t.Errorf("Parse(%v) error = %v; want errors.Is(err, ErrInvalidArgCount) to be true", tc.args, err)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(%v) error message is empty; want non-empty", tc.args)
+			}
+		})
+	}
+}
+
+// TestParseDivisionByZeroSucceedsAtParseLevel verifies that Parse successfully
+// parses "10 / 0" — the division-by-zero error surfaces during execution, not parsing.
+func TestParseDivisionByZeroSucceedsAtParseLevel(t *testing.T) {
+	input, err := parser.Parse([]string{"10", "/", "0"})
+	if err != nil {
+		t.Fatalf("Parse(10 / 0) returned unexpected error: %v; parser should not reject division by zero", err)
+	}
+	if input.Operator != calc.OpDivide {
+		t.Errorf("input.Operator = %q, want %q", input.Operator, calc.OpDivide)
+	}
+	if input.Right != 0 {
+		t.Errorf("input.Right = %v, want 0", input.Right)
+	}
+}
+
+// TestParseDivisionByZeroProducesErrDivisionByZeroOnExecute verifies that when
+// "10 / 0" is parsed and executed through the engine, ErrDivisionByZero is returned.
+func TestParseDivisionByZeroProducesErrDivisionByZeroOnExecute(t *testing.T) {
+	input, err := parser.Parse([]string{"10", "/", "0"})
+	if err != nil {
+		t.Fatalf("Parse(10 / 0) returned unexpected parse error: %v", err)
+	}
+
+	engine := calc.NewEngine()
+	op := calc.Operation{
+		Left:     input.Left,
+		Operator: input.Operator,
+		Right:    input.Right,
+	}
+	_, execErr := engine.Calculate(op)
+
+	if execErr == nil {
+		t.Fatal("engine.Calculate(10 / 0) = nil; want ErrDivisionByZero error")
+	}
+	if !errors.Is(execErr, errs.ErrDivisionByZero) {
+		t.Errorf("engine.Calculate(10 / 0) error = %v; want errors.Is(err, ErrDivisionByZero) to be true", execErr)
+	}
+	if execErr.Error() == "" {
+		t.Error("engine.Calculate(10 / 0) error message is empty; want non-empty")
+	}
+}
+
+// TestParseErrorMessageNonEmptyForAllErrorCases verifies that all error paths
+// from Parse return errors with non-empty messages.
+func TestParseErrorMessageNonEmptyForAllErrorCases(t *testing.T) {
+	cases := []struct {
+		name string
+		args []string
+	}{
+		{"zero args", []string{}},
+		{"one arg", []string{"5"}},
+		{"two args", []string{"5", "+"}},
+		{"four args", []string{"5", "+", "3", "extra"}},
+		{"five args", []string{"1", "+", "2", "3", "4"}},
+		{"invalid left operand letters", []string{"abc", "+", "4"}},
+		{"invalid left operand multiple dots", []string{"1.2.3", "+", "4"}},
+		{"invalid right operand letters", []string{"3", "+", "xyz"}},
+		{"invalid right operand multiple dots", []string{"3", "+", "1.2.3"}},
+		{"invalid operator percent", []string{"3", "%", "4"}},
+		{"invalid operator caret", []string{"3", "^", "4"}},
+		{"invalid operator word", []string{"3", "mod", "4"}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parser.Parse(tc.args)
+			if err == nil {
+				t.Fatalf("Parse(%v) = nil; want non-nil error", tc.args)
+			}
+			if err.Error() == "" {
+				t.Errorf("Parse(%v) error message is empty; want non-empty message", tc.args)
+			}
+		})
 	}
 }
 
