@@ -202,6 +202,14 @@ func TestParseReturnsErrorForUnknownOperator(t *testing.T) {
 	}
 }
 
+// BenchmarkParse measures the performance of the Parse function.
+func BenchmarkParse(b *testing.B) {
+	args := []string{"3", "+", "4"}
+	for i := 0; i < b.N; i++ {
+		parser.Parse(args)
+	}
+}
+
 // TestParseAllOperators verifies that Parse correctly identifies all four
 // supported arithmetic operators.
 func TestParseAllOperators(t *testing.T) {

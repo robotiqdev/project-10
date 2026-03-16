@@ -246,6 +246,15 @@ func TestNewEngineReturnsNonNilEngine(t *testing.T) {
 	}
 }
 
+// BenchmarkEngineCalculate measures the performance of Engine.Calculate.
+func BenchmarkEngineCalculate(b *testing.B) {
+	engine := calc.NewEngine()
+	op := calc.Operation{Left: 10, Right: 3, Operator: calc.OpAdd}
+	for i := 0; i < b.N; i++ {
+		engine.Calculate(op)
+	}
+}
+
 // TestEngineCalculateNoErrorOnValidOperations verifies no error is returned for
 // all four valid operators.
 func TestEngineCalculateNoErrorOnValidOperations(t *testing.T) {

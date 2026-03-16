@@ -170,6 +170,34 @@ func TestDivideByZeroReturnsZeroResult(t *testing.T) {
 	}
 }
 
+// BenchmarkAdd measures the performance of the Add function.
+func BenchmarkAdd(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Add(3, 4)
+	}
+}
+
+// BenchmarkSubtract measures the performance of the Subtract function.
+func BenchmarkSubtract(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Subtract(10, 3)
+	}
+}
+
+// BenchmarkMultiply measures the performance of the Multiply function.
+func BenchmarkMultiply(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Multiply(3, 4)
+	}
+}
+
+// BenchmarkDivide measures the performance of the Divide function.
+func BenchmarkDivide(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Divide(10, 2)
+	}
+}
+
 // TestDivideByZeroMultipleDividends verifies that Divide(x, 0) always returns
 // ErrDivisionByZero regardless of the dividend x value.
 func TestDivideByZeroMultipleDividends(t *testing.T) {
