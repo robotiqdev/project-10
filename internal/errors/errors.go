@@ -7,7 +7,8 @@ import (
 
 // Sentinel errors
 var (
-	ErrDivisionByZero = errors.New("division by zero")
+	ErrDivisionByZero  = errors.New("division by zero")
+	ErrUnknownOperator = errors.New("unknown operator")
 )
 
 // CalcError wraps a sentinel error with the offending input value.
