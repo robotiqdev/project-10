@@ -1,6 +1,14 @@
-package calculator
+//go:build !integration
 
-import "testing"
+package calculator_test
+
+import (
+	"math"
+	"testing"
+
+	"github.com/example/calc-app/calculator"
+	"github.com/example/calc-app/internal/calc"
+)
 
 // TestAdd verifies Add returns the correct sum for various inputs.
 func TestAdd(t *testing.T) {
@@ -23,7 +31,7 @@ func TestAdd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Add(tt.a, tt.b)
+			got := calculator.Add(tt.a, tt.b)
 			if got != tt.expected {
 				t.Errorf("Add(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
 			}
@@ -52,7 +60,7 @@ func TestSubtract(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Subtract(tt.a, tt.b)
+			got := calculator.Subtract(tt.a, tt.b)
 			if got != tt.expected {
 				t.Errorf("Subtract(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
 			}
@@ -81,7 +89,7 @@ func TestMultiply(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Multiply(tt.a, tt.b)
+			got := calculator.Multiply(tt.a, tt.b)
 			if got != tt.expected {
 				t.Errorf("Multiply(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
 			}
@@ -112,10 +120,133 @@ func TestDivide(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Divide(tt.a, tt.b)
+			got := calculator.Divide(tt.a, tt.b)
 			if got != tt.expected {
 				t.Errorf("Divide(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
 			}
 		})
+	}
+}
+
+// TestAddBasicCases verifies Add returns the correct sum for the required basic cases.
+func TestAddBasicCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     float64
+		expected float64
+		approx   bool
+	}{
+		{"Add(2,3)=5", 2, 3, 5, false},
+		{"Add(-1,1)=0", -1, 1, 0, false},
+		{"Add(0.1,0.2)≈0.3", 0.1, 0.2, 0.3, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := calc.Add(tt.a, tt.b)
+			if tt.approx {
+				if math.Abs(got-tt.expected) > 1e-9 {
+					t.Errorf("Add(%v, %v) = %v; want approximately %v", tt.a, tt.b, got, tt.expected)
+				}
+			} else {
+				if got != tt.expected {
+					t.Errorf("Add(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
+				}
+			}
+		})
+	}
+}
+
+// TestSubtractBasicCases verifies Subtract returns the correct difference for the required basic cases.
+func TestSubtractBasicCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     float64
+		expected float64
+	}{
+		{"Subtract(5,3)=2", 5, 3, 2},
+		{"Subtract(-2,-3)=1", -2, -3, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := calc.Subtract(tt.a, tt.b)
+			if got != tt.expected {
+				t.Errorf("Subtract(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
+			}
+		})
+	}
+}
+
+// TestMultiplyBasicCases verifies Multiply returns the correct product for the required basic cases.
+func TestMultiplyBasicCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     float64
+		expected float64
+	}{
+		{"Multiply(3,4)=12", 3, 4, 12},
+		{"Multiply(0,100)=0", 0, 100, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := calc.Multiply(tt.a, tt.b)
+			if got != tt.expected {
+				t.Errorf("Multiply(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
+			}
+		})
+	}
+}
+
+// TestDivideBasicCases verifies Divide returns the correct quotient for the required basic cases.
+func TestDivideBasicCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     float64
+		expected float64
+	}{
+		{"Divide(10,4)=2.5", 10, 4, 2.5},
+		{"Divide(-6,2)=-3", -6, 2, -3},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := calc.Divide(tt.a, tt.b)
+			if err != nil {
+				t.Fatalf("Divide(%v, %v) returned unexpected error: %v", tt.a, tt.b, err)
+			}
+			if got != tt.expected {
+				t.Errorf("Divide(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
+			}
+		})
+	}
+}
+
+// BenchmarkAdd measures the performance of the Add function.
+func BenchmarkAdd(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Add(2, 3)
+	}
+}
+
+// BenchmarkSubtract measures the performance of the Subtract function.
+func BenchmarkSubtract(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Subtract(5, 3)
+	}
+}
+
+// BenchmarkMultiply measures the performance of the Multiply function.
+func BenchmarkMultiply(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Multiply(3, 4)
+	}
+}
+
+// BenchmarkDivide measures the performance of the Divide function.
+func BenchmarkDivide(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		calc.Divide(10, 4)
 	}
 }

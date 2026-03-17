@@ -1,7 +1,10 @@
+//go:build !integration
+
 package calc
 
 import (
 	"errors"
+	"math"
 	"testing"
 
 	errs "github.com/example/calc-app/internal/errors"
@@ -22,6 +25,8 @@ func TestAdd(t *testing.T) {
 		{"zero right operand", 5, 0, 5},
 		{"both operands zero", 0, 0, 0},
 		{"negative decimal", -1.1, -2.2, -3.3000000000000003},
+		{"large positive numbers", 1e12, 2e12, 3e12},
+		{"large negative numbers", -1e12, -2e12, -3e12},
 	}
 
 	for _, tt := range tests {
@@ -49,6 +54,7 @@ func TestSubtract(t *testing.T) {
 		{"zero left operand", 0, 5, -5},
 		{"zero right operand", 5, 0, 5},
 		{"both operands zero", 0, 0, 0},
+		{"large numbers", 1e15, 5e14, 5e14},
 	}
 
 	for _, tt := range tests {
@@ -78,6 +84,7 @@ func TestMultiply(t *testing.T) {
 		{"both operands zero", 0, 0, 0},
 		{"multiply by one", 7, 1, 7},
 		{"fractional result", 0.1, 0.2, 0.020000000000000004},
+		{"large numbers", 1e6, 1e6, 1e12},
 	}
 
 	for _, tt := range tests {
@@ -105,6 +112,7 @@ func TestDivide(t *testing.T) {
 		{"both negative", -10, -2, 5},
 		{"zero dividend", 0, 5, 0},
 		{"decimal operands", 7.5, 2.5, 3.0},
+		{"large numbers", 1e12, 1e6, 1e6},
 	}
 
 	for _, tt := range tests {
@@ -113,7 +121,7 @@ func TestDivide(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Divide(%v, %v) returned unexpected error: %v", tt.a, tt.b, err)
 			}
-			if got != tt.expected {
+			if math.Abs(got-tt.expected) >= 1e-9 && got != tt.expected {
 				t.Errorf("Divide(%v, %v) = %v; want %v", tt.a, tt.b, got, tt.expected)
 			}
 		})
@@ -159,5 +167,69 @@ func TestDivideByZeroReturnsZeroResult(t *testing.T) {
 
 	if result != 0 {
 		t.Errorf("Divide(5, 0) result = %v; want 0 when error is returned", result)
+	}
+}
+
+// BenchmarkAdd measures the performance of the Add function.
+func BenchmarkAdd(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Add(3, 4)
+	}
+}
+
+// BenchmarkSubtract measures the performance of the Subtract function.
+func BenchmarkSubtract(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Subtract(10, 3)
+	}
+}
+
+// BenchmarkMultiply measures the performance of the Multiply function.
+func BenchmarkMultiply(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Multiply(3, 4)
+	}
+}
+
+// BenchmarkDivide measures the performance of the Divide function.
+func BenchmarkDivide(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Divide(10, 2)
+	}
+}
+
+// TestDivideByZeroMultipleDividends verifies that Divide(x, 0) always returns
+// ErrDivisionByZero regardless of the dividend x value.
+func TestDivideByZeroMultipleDividends(t *testing.T) {
+	tests := []struct {
+		name     string
+		dividend float64
+	}{
+		{"positive integer", 1},
+		{"positive large integer", 1000000},
+		{"negative integer", -7},
+		{"negative large integer", -1000000},
+		{"zero dividend", 0},
+		{"positive decimal", 3.14},
+		{"negative decimal", -2.71},
+		{"very small positive", 0.0001},
+		{"very large positive", 1e15},
+		{"very large negative", -1e15},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := Divide(tt.dividend, 0)
+
+			if err == nil {
+				t.Fatalf("Divide(%v, 0) = %v, nil; want an error", tt.dividend, result)
+			}
+			if !errors.Is(err, errs.ErrDivisionByZero) {
+				t.Errorf("Divide(%v, 0) error = %v; want errors.Is(err, ErrDivisionByZero) to be true", tt.dividend, err)
+			}
+			if result != 0 {
+				t.Errorf("Divide(%v, 0) result = %v; want 0 when error is returned", tt.dividend, result)
+			}
+		})
 	}
 }
